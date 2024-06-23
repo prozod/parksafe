@@ -6,22 +6,27 @@ import About from "./views/About";
 import Contact from "./views/Contact";
 import Logo from "./assets/psafe.svg";
 import React, { useState } from "react";
+import { AppContext } from "./AppCtx";
 const Drawer = createDrawerNavigator();
-export const AppContext = React.createContext(null);
+// export const AppContext = React.createContext(null);
 
 export default function App() {
-  const [reservedSpots, setReservedSpots] = useState({
-    r1: false,
-    r2: false,
-    r3: false,
-  });
+  const [reservedSpots, setReservedSpots] = useState([
+    { id: 1, reserved: false },
+    { id: 2, reserved: false },
+    { id: 3, reserved: false },
+  ]);
+  const [currentDevice, setCurrentDevice] = useState("");
 
+  console.disableYellowBox = true;
   return (
     <>
       <AppContext.Provider
         value={{
           reservedSpots: reservedSpots,
           setReservedSpots: setReservedSpots,
+          currentDevice: currentDevice,
+          setCurrentDevice: setCurrentDevice,
         }}
       >
         <NavigationContainer>

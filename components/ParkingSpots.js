@@ -8,16 +8,15 @@ import {
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import ParkingCard from "./ParkingCard";
-import Button from "./Button";
-import { AppContext } from "../App";
+import { AppContext } from "../AppCtx";
 
 // 172.20.10.2:80
 // 192.168.179.34:80
-// fetch("https://dummyjson.com/comments/1")
 
 export default function ParkingSpots() {
   const [sensorData, setSensorData] = useState("");
-  let awarenessDistance = 8;
+  const { reservedSpots, setReservedSpots } = useContext(AppContext);
+  let awarenessDistance = 10;
   useEffect(() => {
     function getAlerts() {
       fetch("http://192.168.179.34:80/refresh")
@@ -30,7 +29,6 @@ export default function ParkingSpots() {
       clearInterval(interval);
     };
   }, []);
-  const { reservedSpots, setReservedSpots } = useContext(AppContext);
 
   // 1) beep cand parchezi pe locul gresit rezervat din aplicatie (ex: rezervat loc 2, parcat pe loc 3 --- beep/vibratie)
 
@@ -48,9 +46,8 @@ export default function ParkingSpots() {
   let flag2 = 0;
   let flag3 = 0;
 
-  console.log("Sensor data from IP addr:", sensorData);
-
   let fullAddress = "46.069042, 23.572632";
+
   const url = Platform.select({
     ios: `maps:0,0?q=${fullAddress}`,
     android: `geo:0,0?q=${fullAddress}`,
@@ -62,6 +59,20 @@ export default function ParkingSpots() {
 
   let freeSpots = flag1 + flag2 + flag3;
   console.log(freeSpots, "flags: ", flag1, flag2, flag3);
+  console.log(
+    "SPOT 1 STATUS: ",
+    reservedSpots[0].reserved,
+    sensorData.distance1,
+    "SPOT 2 STATUS: ",
+    reservedSpots[1].reserved,
+    sensorData.distance2,
+    "SPOT 3 STATUS: ",
+    reservedSpots[2].reserved,
+    sensorData.distance3
+  );
+  useEffect(() => {
+    console.log("RESERVED SPOTS STATE CHANGED: ", reservedSpots);
+  }, [reservedSpots]);
 
   return (
     <View style={styles.container}>
@@ -74,40 +85,42 @@ export default function ParkingSpots() {
         </Text> */}
       </Pressable>
       {freeSpots == 0 ? (
-        <Text>Nu sunt locuri de parcare disponibile</Text>
+        <Text style={styles.noparkingspots}>
+          Nu sunt locuri de parcare disponibile
+        </Text>
       ) : (
         <View style={styles.cards}>
           {sensorData.distance1 > awarenessDistance && (
             <ParkingCard
               id="1"
-              name="Parcare universitate (loc 1):"
+              name="Parcare universitate (loc 1)"
               distance={sensorData.distance1}
               location="Strada Unirii, 37C"
               number="32"
               price="GRATUIT"
-              reserved={reservedSpots.r1}
+              reserved={reservedSpots[0].reserved}
             />
           )}
           {sensorData.distance2 > awarenessDistance && (
             <ParkingCard
               id="2"
-              name="Parcare universitate (loc 2):"
+              name="Parcare universitate (loc 2)"
               distance={sensorData.distance2}
               location="Strada Unirii, 37C"
               number="75"
               price="GRATUIT"
-              reserved={reservedSpots.r2}
+              reserved={reservedSpots[1].reserved}
             />
           )}
           {sensorData.distance3 > awarenessDistance && (
             <ParkingCard
               id="3"
-              name="Parcare universitate (loc 3):"
+              name="Parcare universitate (loc 3)"
               distance={sensorData.distance3}
               location="Strada Unirii, 37C"
               number="70"
               price="GRATUIT"
-              reserved={reservedSpots.r3}
+              reserved={reservedSpots[2].reserved}
             />
           )}
         </View>
@@ -118,12 +131,15 @@ export default function ParkingSpots() {
 
 const styles = StyleSheet.create({
   container: {
-    width: "80%",
+    width: "90%",
     marginVertical: 25,
   },
   availabilityText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  noparkingspots: {
+    color: "#fff",
   },
 });
